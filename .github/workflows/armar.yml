@@ -1,0 +1,43 @@
+name: Armar Mi Inventor
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  armar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Abrir el zip de la versión más alta
+        run: |
+          if ! ls *.zip >/dev/null 2>&1; then echo "Todavía no hay zip"; echo "SEGUIR=no" >> $GITHUB_ENV; exit 0; fi
+          echo "SEGUIR=si" >> $GITHUB_ENV
+          Z=$(ls *.zip | sort -V | tail -1)
+          mkdir proyecto
+          unzip -q "$Z" -d proyecto
+          V=$(grep -oP "versionName '\K[^']+" proyecto/app/build.gradle)
+          echo "VER=$V" >> $GITHUB_ENV
+      - uses: actions/setup-java@v4
+        if: env.SEGUIR == 'si'
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        if: env.SEGUIR == 'si'
+        with:
+          gradle-version: '8.11.1'
+      - name: Armar la app
+        if: env.SEGUIR == 'si'
+        working-directory: proyecto
+        run: gradle assembleRelease --no-daemon
+      - name: Ponerle nombre
+        if: env.SEGUIR == 'si'
+        run: cp proyecto/app/build/outputs/apk/release/app-release.apk MiInventor_${{ env.VER }}.apk
+      - uses: softprops/action-gh-release@v2
+        if: env.SEGUIR == 'si'
+        with:
+          tag_name: v${{ env.VER }}
+          name: Mi Inventor ${{ env.VER }}
+          files: MiInventor_${{ env.VER }}.apk
+          make_latest: true
