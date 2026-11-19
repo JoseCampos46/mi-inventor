@@ -1,4 +1,4 @@
-name: Armar Mi Inventor
+name: Armar ChpCad
 on:
   push:
   workflow_dispatch:
@@ -33,11 +33,11 @@ jobs:
         run: gradle assembleRelease --no-daemon
       - name: Ponerle nombre
         if: env.SEGUIR == 'si'
-        run: cp proyecto/app/build/outputs/apk/release/app-release.apk MiInventor_${{ env.VER }}.apk
+        run: cp proyecto/app/build/outputs/apk/release/app-release.apk ChpCad_${{ env.VER }}.apk
       - uses: softprops/action-gh-release@v2
         if: env.SEGUIR == 'si'
         with:
           tag_name: v${{ env.VER }}
-          name: Mi Inventor ${{ env.VER }}
-          files: MiInventor_${{ env.VER }}.apk
+          name: ChpCad ${{ env.VER }}
+          files: ChpCad_${{ env.VER }}.apk
           make_latest: true
